@@ -1,0 +1,63 @@
+image: registry.yandex-academy.ru/school/2023-06/backend/go/homeworks/async_programming/base:latest
+
+stages:
+  - build
+  - lint
+  - test
+  - score
+
+build:
+  stage: build
+  tags:
+    - docker
+    - shared
+  script:
+    - echo "Compiling the code..."
+    - prepare.sh
+    - go build -o /dev/null ./...
+    - echo "Compile complete."
+
+lint:
+  stage: lint
+  tags:
+    - docker
+    - shared
+  script:
+    - echo "Linting code..."
+    - prepare.sh
+    - lint.sh
+    - echo "Linting complete."
+  artifacts:
+    untracked: true
+    expire_in: '1 mins'
+  allow_failure: true
+
+test:
+  stage: test
+  tags:
+    - docker
+    - shared
+  image: registry.yandex-academy.ru/school/2023-06/backend/go/homeworks/async_programming/base:latest
+  script:
+    - echo "Running unit tests... This will take about 60 seconds."
+    - prepare.sh
+    - test.sh
+  artifacts:
+    untracked: true
+    expire_in: '1 mins'
+  allow_failure: true
+
+score:
+  stage: score
+  dependencies:
+    - lint
+    - test
+  tags:
+    - docker
+    - shared
+  script:
+    - success.sh
+  artifacts:
+    paths:
+      - score.json
+  when: always
